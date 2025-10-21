@@ -32,7 +32,12 @@ exports.Register = async (req, res) => {
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true, // Always secure in production
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     return res
       .status(201)
       .json({ token, message: "User registered successfully", user: { username: newUser.username, email: newUser.email, settings: newUser.settings } });
@@ -72,7 +77,13 @@ exports.Login = async (req, res) =>
         user.lastLoggedIn = new Date();
         await user.save();
 
-        res.cookie("token", token);
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: true, // Always secure in production
+          sameSite: 'none',
+          
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
 
         return res.status(200).json({ token, message: "Login successful", user: { username: user.username, email: user.email, settings: user.settings } });
 
@@ -107,7 +118,12 @@ exports.GetProfile = async (req, res) =>
 exports.Logout = async (req, res) => {
     try {
         // Clear the cookie
-        res.clearCookie("token");
+        res.clearCookie("token", {
+          httpOnly: true,
+          secure: true, // Always secure in production
+          sameSite: 'none',
+          
+        });
         return res.status(200).json({ message: "Logout successful" });
     } catch (err) {
         console.log(err);
