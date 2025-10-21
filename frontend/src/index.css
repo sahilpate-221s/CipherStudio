@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Force Sandpack iframe to fill its container */
+iframe.sandpack-preview-iframe {
+  display: block;
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 100% !important;
+  background-color: white !important;
+}
