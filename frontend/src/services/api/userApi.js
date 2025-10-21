@@ -1,4 +1,4 @@
-const BaseUrl = "http://localhost:4000/api/users"; // match your backend port
+const BaseUrl = "https://cipherstudio-25m8.onrender.com/api/users"; // match your backend port
 
 export const registerUser = async (userData) => {
   try {
