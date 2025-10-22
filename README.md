@@ -3,10 +3,16 @@
 A modern, full-stack web application for collaborative code editing and project management. Built with React, Node.js, Express, and MongoDB.
 
 
-## Live Link[https://cipherstudio.app](https://cipherstudio.app)
+## Live Link[https://cipher-studio-lemon.vercel.app/](https://cipherstudio.app)
 
 ##Screenshot
-![Screenshot of the landing page](./public/assets/images/screenshot.png)
+<img width="1818" height="895" alt="image" src="https://github.com/user-attachments/assets/4deac8f6-f8d4-4bc2-948a-001490550dec" />
+<img width="1660" height="881" alt="image" src="https://github.com/user-attachments/assets/210bc711-d98a-41ba-988f-30da8c1bc038" />
+<img width="1741" height="893" alt="image" src="https://github.com/user-attachments/assets/ce193a71-fe59-4bed-99c4-8af0cfc02d34" />
+<img width="1723" height="900" alt="image" src="https://github.com/user-attachments/assets/943b61e1-58bc-4375-acd8-1c17b0e7b38d" />
+
+
+
 
 
 
