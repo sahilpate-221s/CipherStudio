@@ -95,7 +95,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-300 dark:bg-black text-white font-sans overflow-hidden pt-16 ">
-      <Navbar onEnter={() => navigate("/studio")} />
+      <Navbar onEnter={() => navigate("/projects")} />
 
       {/* Hero Section */}
       <section
