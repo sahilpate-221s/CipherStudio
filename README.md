@@ -6,9 +6,8 @@ A modern, full-stack web application for collaborative code editing and project 
 ## Live Link :: [CipherStudio.com](https://cipher-studio-lemon.vercel.app/)
 
 ## login Credentials: 
-## email: abc@gmail.com
-## password: 123456
-##Screenshot
+** email: abc@gmail.com , password: 123456
+## Screenshot
 <img width="1818" height="895" alt="image" src="https://github.com/user-attachments/assets/4deac8f6-f8d4-4bc2-948a-001490550dec" />
 <img width="1660" height="881" alt="image" src="https://github.com/user-attachments/assets/210bc711-d98a-41ba-988f-30da8c1bc038" />
 <img width="1741" height="893" alt="image" src="https://github.com/user-attachments/assets/ce193a71-fe59-4bed-99c4-8af0cfc02d34" />
