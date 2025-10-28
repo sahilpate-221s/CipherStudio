@@ -12,13 +12,28 @@ const sortTree = (nodes) => {
     .map((node) => ({
       ...node,
       children: node.children ? sortTree(node.children) : undefined,
+      isOpen: node.type === "folder" ? (node.isOpen !== undefined ? node.isOpen : false) : undefined,
     }));
+};
+
+const updatePaths = (node, parentPath = "") => {
+  const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+  return {
+    ...node,
+    path: currentPath,
+    children: node.children ? node.children.map(child => updatePaths(child, currentPath)) : undefined,
+  };
 };
 
 const processTree = (tree, action, targetId, data = {}, parentPath = "") => {
   return tree
     .map((node) => {
       const currentPath = parentPath ? `${parentPath}/${node.name}` : node.name;
+
+      // Handle delete for both files and folders
+      if (action === "delete" && node.id === targetId) {
+        return null;
+      }
 
       // Recurse first if folder
       if (node.type === "folder" && node.children) {
@@ -38,19 +53,30 @@ const processTree = (tree, action, targetId, data = {}, parentPath = "") => {
           return { ...node, children: sortTree([...updatedChildren, newNode]) };
         }
 
-        return { ...node, children: updatedChildren };
-      }
-
-      // Handle rename / delete
-      if (node.id === targetId) {
-        if (action === "delete") return null;
-        if (action === "rename") {
+        // Handle rename for folder - update children paths too
+        if (action === "rename" && node.id === targetId) {
+          const newPath = parentPath ? `${parentPath}/${data.newName}` : data.newName;
+          const updatedChildrenWithNewPaths = updatedChildren.map(child =>
+            updatePaths(child, newPath)
+          );
           return {
             ...node,
             name: data.newName,
-            path: `${parentPath}/${data.newName}`,
+            path: newPath,
+            children: updatedChildrenWithNewPaths,
           };
         }
+
+        return { ...node, children: updatedChildren };
+      }
+
+      // Handle rename for files
+      if (action === "rename" && node.id === targetId) {
+        return {
+          ...node,
+          name: data.newName,
+          path: `${parentPath}/${data.newName}`,
+        };
       }
 
       return node;
@@ -75,12 +101,38 @@ export const useFileTreeManager = (initialTree, initialContents, initialSelected
         if (data.nodeType === "file") setSelectedFileId(data.newId);
       } else if (action === "delete" && targetId === selectedFileId) {
         setSelectedFileId(null);
+        // Remove content when deleting a file
+        setFileContents(prev => {
+          const newContents = { ...prev };
+          delete newContents[targetId];
+          return newContents;
+        });
       }
 
-      setFileTree(updatedTree);
+      // Update paths after any action
+      const treeWithUpdatedPaths = updatedTree.map(node => updatePaths(node));
+
+      setFileTree(treeWithUpdatedPaths);
     },
     [fileTree, selectedFileId]
   );
+
+  const toggleFolder = useCallback((folderId) => {
+    setFileTree(prevTree => {
+      const toggleOpen = (nodes) => {
+        return nodes.map(node => {
+          if (node.id === folderId && node.type === "folder") {
+            return { ...node, isOpen: !node.isOpen };
+          }
+          if (node.children) {
+            return { ...node, children: toggleOpen(node.children) };
+          }
+          return node;
+        });
+      };
+      return toggleOpen(prevTree);
+    });
+  }, []);
 
   const handleUpdateContent = useCallback((id, newContent) => {
     setFileContents((prev) => ({ ...prev, [id]: newContent }));
@@ -97,5 +149,6 @@ export const useFileTreeManager = (initialTree, initialContents, initialSelected
     fileContents,
     setFileTree,
     setFileContents,
+    toggleFolder,
   };
 };

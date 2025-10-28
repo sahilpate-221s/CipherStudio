@@ -3,7 +3,7 @@ import { FileText, Folder, Plus, Trash2, Edit, Check } from "lucide-react";
 import FileExplorer from "./FileExplorer";
 
 const FileNode = ({ node, selectedId, onSelect, onAction, depth, isRenaming, setIsRenaming }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(node.isOpen || false);
   const [newName, setNewName] = useState(node.name);
   const inputRef = useRef(null);
 

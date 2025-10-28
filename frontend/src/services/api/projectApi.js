@@ -1,11 +1,15 @@
-const BaseUrl = "https://cipherstudio-25m8.onrender.com/api/projects"; // match your backend port
-// const BaseUrl = "https://cipherstudio-25m8.onrender.com/api/projects"; // match your backend port
+const BaseUrl = "https://cipherstudio-25m8.onrender.com/api/projects";
+// const BaseUrl = "http://localhost:4000/api/projects";
 
 export const getUserProjects = async () => {
   try {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${BaseUrl}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { "Authorization": `Bearer ${token}` })
+      },
       credentials: "include", // include cookies
     });
 

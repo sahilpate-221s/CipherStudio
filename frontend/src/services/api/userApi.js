@@ -1,4 +1,5 @@
-const BaseUrl = "https://cipherstudio-25m8.onrender.com/api/users"; // match your backend port
+const BaseUrl = "https://cipherstudio-25m8.onrender.com/api/users"; 
+// const BaseUrl = "http://localhost:4000/api/users"; 
 
 export const registerUser = async (userData) => {
   try {
@@ -36,6 +37,11 @@ export const loginUser = async (userData) => {
       throw new Error(data.message || "Failed to login user");
     }
 
+    // Store token in localStorage for cross-origin requests
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+
     return data;
   } catch (error) {
     console.error("Error logging in user:", error);
@@ -45,9 +51,13 @@ export const loginUser = async (userData) => {
 
 export const getUserProfile = async () => {
   try {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${BaseUrl}/profile`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { "Authorization": `Bearer ${token}` })
+      },
       credentials: "include", // include cookies
     });
     const data = await response.json();
@@ -82,9 +92,13 @@ export const logoutUser = async () => {
 
 export const updateUserSettings = async (settings) => {
   try {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${BaseUrl}/settings`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { "Authorization": `Bearer ${token}` })
+      },
       body: JSON.stringify({ settings }),
       credentials: "include",
     });

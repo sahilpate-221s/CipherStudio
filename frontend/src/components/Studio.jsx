@@ -8,6 +8,37 @@ import MonacoEditor from "../editor/MonacoEditor";
 import { useFileTreeManager } from "../hooks/useFileTreeManager";
 import { getProject, updateProjectFiles } from "../services/api/projectApi";
 
+// Error Boundary Component for SandpackPreview
+class PreviewErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Preview Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-full bg-slate-950/30 text-slate-400">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500 mx-auto mb-2"></div>
+            <p className="text-sm">Compiling...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 // Initial project structure
 const initialTree = [
   {
@@ -73,7 +104,7 @@ function App() {
 }
 
 export default App;
-        `.trim(),
+`.trim(),
   3: `
 body {
   margin: 0;
@@ -88,7 +119,7 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-        `.trim(),
+`.trim(),
   4: `
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -101,7 +132,7 @@ root.render(
     <App />
   </React.StrictMode>
 );
-        `.trim(),
+`.trim(),
   6: `
 <!DOCTYPE html>
 <html lang="en">
@@ -115,7 +146,7 @@ root.render(
     <div id="root"></div>
   </body>
 </html>
-        `.trim(),
+`.trim(),
   7: JSON.stringify(
     {
       name: "cipher-studio-app",
@@ -159,6 +190,9 @@ export default function Studio() {
   const [openTabs, setOpenTabs] = useState([
     { path: "/src/app.js", name: "app.js", id: "2" },
   ]);
+  const [previewKey, setPreviewKey] = useState(0);
+  const previewDebounceRef = useRef(null);
+  const saveDebounceRef = useRef(null);
 
   // Local file tree for UI interactions
   const {
@@ -172,20 +206,17 @@ export default function Studio() {
     handleFileAction: localHandleFileAction,
     setFileTree: setLocalFileTree,
     setFileContents: setLocalFileContents,
+    toggleFolder: localToggleFolder,
   } = useFileTreeManager(initialTree, initialContents, "2");
 
-  // Server file tree for saving
+  // Server file tree for saving (avoid circular sync)
   const [serverFileTree, setServerFileTree] = useState([]);
   const [serverFileContents, setServerFileContents] = useState({});
 
-  // Sync server states with local states for persistence
+  // Update preview when file tree changes (e.g., new files added)
   useEffect(() => {
-    setServerFileTree(localFileTree);
+    setPreviewKey(prev => prev + 1);
   }, [localFileTree]);
-
-  useEffect(() => {
-    setServerFileContents(localFileContents);
-  }, [localFileContents]);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -280,13 +311,13 @@ export default function Studio() {
     if (!projectSlug) return;
     try {
       await updateProjectFiles(projectSlug, {
-        tree: serverFileTree,
-        contents: serverFileContents,
+        tree: localFileTree,
+        contents: localFileContents,
       });
     } catch (error) {
       console.error("Error saving files:", error);
     }
-  }, [projectSlug, serverFileTree, serverFileContents]);
+  }, [projectSlug, localFileTree, localFileContents]);
 
   const saveFilesRef = useRef(saveFiles);
 
@@ -298,7 +329,7 @@ export default function Studio() {
     if (!autoSave) return;
     const interval = setInterval(() => {
       saveFilesRef.current();
-    }, 5000); // Auto-save every 5 seconds
+    }, 1000); // Auto-save every 1 sec
     return () => clearInterval(interval);
   }, [autoSave]);
 
@@ -398,20 +429,27 @@ export default function Studio() {
           <div className="flex-1 overflow-y-auto dark:bg-slate-950/50 bg-slate-500">
             <FileExplorerPanel
               onSelect={handleFileSelect}
-              onAddFile={(folderId) =>
-                localHandleFileAction("add", folderId, { nodeType: "file" })
-              }
-              onAddFolder={(folderId) =>
-                localHandleFileAction("add", folderId, { nodeType: "folder" })
-              }
-              onRename={(nodeId, newName) =>
-                localHandleFileAction("rename", nodeId, { newName })
-              }
-              onDelete={(nodeId) => localHandleFileAction("delete", nodeId)}
+              onAddFile={(folderId) => {
+                localHandleFileAction("add", folderId, { nodeType: "file" });
+                saveFiles();
+              }}
+              onAddFolder={(folderId) => {
+                localHandleFileAction("add", folderId, { nodeType: "folder" });
+                saveFiles();
+              }}
+              onRename={(nodeId, newName) => {
+                localHandleFileAction("rename", nodeId, { newName });
+                saveFiles();
+              }}
+              onDelete={(nodeId) => {
+                localHandleFileAction("delete", nodeId);
+                saveFiles();
+              }}
               fileTree={localFileTree}
               selectedId={localSelectedFileId}
               isRenaming={localIsRenaming}
               setIsRenaming={setLocalIsRenaming}
+              toggleFolder={localToggleFolder}
             />
           </div>
         </div>
@@ -457,6 +495,24 @@ export default function Studio() {
                     ...prev,
                     [selectedFile.id]: newContent,
                   }));
+
+                  // Auto-save on change if enabled
+                  if (autoSave) {
+                    if (saveDebounceRef.current) {
+                      clearTimeout(saveDebounceRef.current);
+                    }
+                    saveDebounceRef.current = setTimeout(() => {
+                      saveFilesRef.current();
+                    }, 1000); // Auto-save 1 second after stopping typing
+                  }
+
+                  // Debounce preview updates to avoid excessive re-renders and errors during typing
+                  if (previewDebounceRef.current) {
+                    clearTimeout(previewDebounceRef.current);
+                  }
+                  previewDebounceRef.current = setTimeout(() => {
+                    setPreviewKey(prev => prev + 1);
+                  }, 500); // Reduced from 2000ms to 500ms for better responsiveness
                 }
               }}
             />
@@ -469,9 +525,12 @@ export default function Studio() {
             <h3 className="text-sm font-semibold dark:text-white text-black">Preview</h3>
           </div>
           <div className="flex-1 overflow-hidden bg-slate-950/30">
-            <SandpackPreview
-              files={{ tree: localFileTree, contents: localFileContents }}
-            />
+            <PreviewErrorBoundary>
+              <SandpackPreview
+                key={previewKey}
+                files={{ tree: localFileTree, contents: localFileContents }}
+              />
+            </PreviewErrorBoundary>
           </div>
         </div>
       </div>

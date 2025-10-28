@@ -229,47 +229,7 @@ exports.GetProject = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // Fetch files from Files collection and build tree structure
-    const files = await File.find({ projectId: project._id }).sort({
-      createdAt: 1,
-    });
-
-    // Build tree structure, starting from root's children to exclude root folder
-    const buildTree = (parentId = null, parentPath = "") => {
-      const children = files.filter(
-        (f) => f.parentId?.toString() === parentId?.toString()
-      );
-      return children.map((child) => {
-        const currentPath = parentPath ? `${parentPath}/${child.name}` : child.name;
-        return {
-          id: child._id.toString(),
-          name: child.name,
-          type: child.type,
-          path: currentPath,
-          children: child.type === "folder" ? buildTree(child._id, currentPath) : undefined,
-        };
-      });
-    };
-
-    // Find the root folder and build tree from its children
-    const rootFolder = files.find(f => f.parentId === null && f.type === 'folder');
-    const tree = rootFolder ? buildTree(rootFolder._id) : [];
-
-    // Build contents object
-    const contents = {};
-    files
-      .filter((f) => f.type === "file")
-      .forEach((file) => {
-        contents[file._id.toString()] = file.content || "";
-      });
-
-    // Attach files to project response
-    const projectWithFiles = {
-      ...project.toObject(),
-      files: { tree, contents },
-    };
-
-    return res.status(200).json({ project: projectWithFiles });
+    return res.status(200).json({ project });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ message: "Server error in get project" });
