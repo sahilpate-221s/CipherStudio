@@ -125,7 +125,7 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between mb-10">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+          className="flex items-center cursor-pointer gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
         >
           <ArrowLeft size={18} />
           <span>Back</span>

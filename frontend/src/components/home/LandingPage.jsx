@@ -28,35 +28,34 @@ export default function LandingPage() {
     gsap.registerPlugin(ScrollTrigger);
 
     // Flip animation for the inner flipper
-   ScrollTrigger.matchMedia({
-  "(min-width: 1400px)": () => {
-    // large screens
-    gsap.to(flipperRef.current, {
-      rotationY: 180,
-      scrollTrigger: {
-        trigger: cardRef.current,
-        start: "top 8%", // slower start
-        end: "bottom 50%",
-        scrub: 1,
-        // markers: true,
+    ScrollTrigger.matchMedia({
+      "(min-width: 1400px)": () => {
+        // large screens
+        gsap.to(flipperRef.current, {
+          rotationY: 180,
+          scrollTrigger: {
+            trigger: cardRef.current,
+            start: "top 8%", // slower start
+            end: "bottom 50%",
+            scrub: 1,
+            // markers: true,
+          },
+        });
+      },
+      "(max-width: 1399px)": () => {
+        // default smaller screens
+        gsap.to(flipperRef.current, {
+          rotationY: 180,
+          scrollTrigger: {
+            trigger: cardRef.current,
+            start: "top 8%",
+            end: "bottom 65%",
+            scrub: 1,
+            // markers: true,
+          },
+        });
       },
     });
-  },
-  "(max-width: 1399px)": () => {
-    // default smaller screens
-    gsap.to(flipperRef.current, {
-      rotationY: 180,
-      scrollTrigger: {
-        trigger: cardRef.current,
-        start: "top 8%",
-        end: "bottom 65%",
-        scrub: 1,
-        // markers: true,
-      },
-    });
-  },
-});
-
 
     // Whole card elegant movement
     gsap.to(cardRef.current, {
@@ -295,8 +294,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-
-
       {/* Features Section */}
       <section
         ref={featuresRef}
@@ -369,7 +366,9 @@ export default function LandingPage() {
           >
             {/* Subtle glow effect */}
             <span className="absolute inset-0 dark:bg-transparent border border-black  bg-gray-400  transition-all duration-300 rounded-2xl"></span>
-            <span className="relative z-10 dark:text-white text-black/50">Launch CipherStudio</span>
+            <span className="relative z-10 dark:text-white text-black/50">
+              Launch CipherStudio
+            </span>
           </button>
 
           {/* Optional subtle hint text */}

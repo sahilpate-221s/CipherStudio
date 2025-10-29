@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { X, Home, Save } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import FileExplorerPanel from "./FileExplorerPanel";
+import FileExplorer from "./FileExplorer";
 import SandpackPreview from "./SandpackPreview";
 
 import MonacoEditor from "../editor/MonacoEditor";
@@ -427,29 +427,16 @@ export default function Studio() {
         {/* File Explorer Panel */}
         <div className="w-1/5 dark:bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-sm border-r border-slate-700/50 flex flex-col overflow-hidden shadow-xl">
           <div className="flex-1 overflow-y-auto dark:bg-slate-950/50 bg-slate-500">
-            <FileExplorerPanel
-              onSelect={handleFileSelect}
-              onAddFile={(folderId) => {
-                localHandleFileAction("add", folderId, { nodeType: "file" });
-                saveFiles();
-              }}
-              onAddFolder={(folderId) => {
-                localHandleFileAction("add", folderId, { nodeType: "folder" });
-                saveFiles();
-              }}
-              onRename={(nodeId, newName) => {
-                localHandleFileAction("rename", nodeId, { newName });
-                saveFiles();
-              }}
-              onDelete={(nodeId) => {
-                localHandleFileAction("delete", nodeId);
-                saveFiles();
-              }}
-              fileTree={localFileTree}
+            <FileExplorer
+              tree={localFileTree}
               selectedId={localSelectedFileId}
+              onSelect={handleFileSelect}
+              onAction={(action, id, data) => {
+                localHandleFileAction(action, id, data);
+                saveFiles();
+              }}
               isRenaming={localIsRenaming}
               setIsRenaming={setLocalIsRenaming}
-              toggleFolder={localToggleFolder}
             />
           </div>
         </div>
